@@ -4,7 +4,7 @@
         "location"
     ],
     "companyName": "infanf",
-    "longName": "MVV Abfahrtszeiten Monitor",
+    "longName": "EFA-BW Abfahrtszeiten Monitor",
     "projectType": "pebblejs",
     "resources": {
         "media": [
@@ -29,18 +29,13 @@
                 "type": "font"
             },
             {
-                "file": "images/s18.png",
-                "name": "IMAGES_S18_PNG",
-                "type": "bitmap"
+                "file": "images/x.png",
+                "name": "IMAGES_X_PNG",
+                "type": "png"
             },
             {
-                "file": "images/mer.png",
-                "name": "IMAGES_MER_PNG",
-                "type": "bitmap"
-            },
-            {
-                "file": "images/bob.png",
-                "name": "IMAGES_BOB_PNG",
+                "file": "images/u.png",
+                "name": "IMAGES_U_PNG",
                 "type": "png"
             },
             {
@@ -84,61 +79,6 @@
                 "type": "png"
             },
             {
-                "file": "images/s4.png",
-                "name": "IMAGES_S4_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s7.png",
-                "name": "IMAGES_S7_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s8.png",
-                "name": "IMAGES_S8_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s3.png",
-                "name": "IMAGES_S3_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s20.png",
-                "name": "IMAGES_S20_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s2.png",
-                "name": "IMAGES_S2_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s1.png",
-                "name": "IMAGES_S1_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s5.png",
-                "name": "IMAGES_S5_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/s6.png",
-                "name": "IMAGES_S6_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/x.png",
-                "name": "IMAGES_X_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/u.png",
-                "name": "IMAGES_U_PNG",
-                "type": "png"
-            },
-            {
                 "file": "images/t.png",
                 "name": "IMAGES_T_PNG",
                 "type": "png"
@@ -147,6 +87,56 @@
                 "file": "images/s.png",
                 "name": "IMAGES_S_PNG",
                 "type": "png"
+            },
+            {
+                "file": "images/s8.png",
+                "name": "IMAGES_S8_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s7.png",
+                "name": "IMAGES_S7_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s6.png",
+                "name": "IMAGES_S6_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s5.png",
+                "name": "IMAGES_S5_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s4.png",
+                "name": "IMAGES_S4_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s3.png",
+                "name": "IMAGES_S3_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s2.png",
+                "name": "IMAGES_S2_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s20.png",
+                "name": "IMAGES_S20_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s1.png",
+                "name": "IMAGES_S1_PNG",
+                "type": "png"
+            },
+            {
+                "file": "images/s18.png",
+                "name": "IMAGES_S18_PNG",
+                "type": "bitmap"
             },
             {
                 "file": "images/r.png",
@@ -164,6 +154,11 @@
                 "type": "png"
             },
             {
+                "file": "images/mer.png",
+                "name": "IMAGES_MER_PNG",
+                "type": "bitmap"
+            },
+            {
                 "file": "images/icon",
                 "menuIcon": true,
                 "name": "IMAGES_ICON",
@@ -173,15 +168,19 @@
                 "file": "images/b.png",
                 "name": "IMAGES_B_PNG",
                 "type": "png"
+            },
+            {
+                "file": "images/bob.png",
+                "name": "IMAGES_BOB_PNG",
+                "type": "png"
             }
         ]
     },
     "sdkVersion": "3",
-    "shortName": "MVV M\u00fcnchen",
+    "shortName": "EFA-BW",
     "targetPlatforms": [
         "aplite",
-        "basalt",
-        "chalk"
+        "basalt"
     ],
     "uuid": "54a4d60e-d4ca-4022-8631-e858acf460e7",
     "versionCode": 1,

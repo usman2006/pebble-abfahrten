@@ -1,8 +1,4 @@
-/**
- * Welcome to Pebble.js!
- *
- * This is where you write your app.
- */
+
 
 if (navigator.language.match(/^de/)) {
   var lang = "DE";
@@ -22,23 +18,43 @@ var Settings = require('settings');
 
 function geoToMVV(lat, lon, callback) {
   //Uncomment these two lines for testing only
-  /*lat = 48.139398;
-  lon = 11.578584;*/
+ // lat = 48.785674;
+ // lon = 9.256159;
   ajax({
-    url: "http://m.mvv-muenchen.de/jqm/mvv_lite/XSLT_STOPFINDER_REQUEST?language=de&stateless=1&type_sf=coord&name_sf="+lon+"%3A"+ lat +"%3AWGS84[DD.ddddd]%3AAktuelle+Position&convertCoord2LocationServer=1&_=1465820721498",
+    url: "http://192.168.178.45:8080/simpleefa/coordinate?lat="+lat+"&lng="+lon+"&radius=1000&format=JSON",
     type: 'json' 
   }, function(data) {
     var coordinations = [0,0];
-    if(data.stopFinder) {
-      coordinations = data.stopFinder.point.ref.coords.split(',');
-    }
-    var mvv = {
-      x : coordinations[0],
-      y : coordinations[1]
+    if(data.for_input) {
+      var mvv = {
+      x : coordinations[0] = data.for_input.lat ,
+      y : coordinations[1] = data.for_input.lng
     };
     callback (mvv);
+    }
+    
   });
 }
+
+
+
+function disFromTo(lat1, lon1, lat2, lon2) {
+  var radlat1 = Math.PI * lat1/180;
+	var radlat2 = Math.PI * lat2/180;
+	var theta = lon1-lon2;
+	var radtheta = Math.PI * theta/180;
+	var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+	dist = Math.acos(dist);
+	dist = dist * 180/Math.PI;
+	dist = dist * 60 * 1.1515;
+	dist = dist * 1.609344 ;
+  dist =  Math.round(dist * 1000) / 1000;
+  
+	
+	return dist;
+}
+
+
 
 function getFavs() {
   // get saved favorites
@@ -156,125 +172,130 @@ var start = function() {
   navigator.geolocation.getCurrentPosition(function(position) {
     geoToMVV(position.coords.latitude , position.coords.longitude, function(mvv){
       //console.debug(mvv.x+":"+mvv.y);
-      /*mvv.x = 4467303;
-      mvv.y = 826265;*/
+     // mvv.x = 48.785674;
+     // mvv.y = 9.256159;
       ajax({
-        url: "http://efa.mvv-muenchen.de/ng/XSLT_COORD_REQUEST?&coord="+mvv.x+"%3A"+mvv.y+"%3AMVTT&inclFilter=1&language=en&outputFormat=json&type_1=GIS_POINT&radius_1=1057&inclDrawClasses_1=101%3A102%3A103&type_2=STOP&radius_2=1057",
+        url: "http://192.168.178.45:8080/simpleefa/coordinate?lat="+mvv.x+"&lng="+mvv.y+"&radius=1000&format=JSON",
         type: 'json' 
       }, function(data) {
-        var pins = [];
-        for (var i in data.pins) {
-          if (data.pins[i].type == "STOP") {
-            var stopID = data.pins[i].id;
-            var stopTitle = formatTitleWithStar(stopID, data.pins[i].desc);
-            pins.push({
+        var station = [];
+        for (var i in data.station) {
+          
+            var stopID = data.station[i].id;
+            var stopTitle = formatTitleWithStar(stopID, data.station[i].station_name);
+            var distance = disFromTo(position.coords.latitude, position.coords.longitude, data.station[i].position.lat, data.station[i].position.lng);
+            station.push({
               //title: utf8_decode(stopTitle),
               title: stopTitle,
-              subtitle: data.pins[i].distance + " m "+(isDe?"entfernt":"away"),
+              subtitle: distance + " km "+(isDe?"entfernt":"away"),
               stationId: stopID
             });
-          }
+          
         }
-        mainMenu.items(1, pins);
+        mainMenu.items(1, station);
       });
     });
   });
 };
 
-var parseData = function(data) {
-  var trains = data.split('<tbody>')[1];
-  var trainArray = trains.split("</tr>");
-  var jsonData = [];
-  for (var i in trainArray) {
-    var html = trainArray[i].replace(/[\s\n\r\t]+/g, " ");
-    var train = {
-      time: html.replace(/^.*<td class="dm_time">\s*(\S[^<]+\S)\s*<.*$/gim, "$1"),
-      linie: html.replace(/^.*<span class="printable">([^<]+)<.*$/gim, "$1"),
-      finalStop: html.replace(/^.*<td width="75\%">\s*(\S[^<]+\S)\s*<.*$/gim, "$1")
-    };
-    if (!train.time.match(/</) && !train.linie.match(/</) && !train.finalStop.match(/</)) jsonData.push(train);
-  }
-  return jsonData;
-};
+
 
 var stationdetails = function(e) {
+  // console.log(e.item.stationId);
+  
   ajax({
-    url: "http://efa.mvv-muenchen.de/xhr_departures?locationServerActive=1&stateless=1&type_dm=any&useAllStops=1&useRealtime=1&limit=100&mode=direct&zope_command=enquiry%3Adepartures&compact=1&name_dm="+e.item.stationId,
+    url: "http://192.168.178.45:8080/simpleefa/nextdepartures?station="+e.item.stationId+"&maxResults=5&format=JSON",
   }, function (data) {
     var body = [];
-    var jsonData = parseData (data);
-    for (var i in jsonData) {
+    
+/*      console.log(data.next_departures[2].line.number);
+      console.log(data.next_departures[2].to.name);
+      console.log(data.next_departures[2].dateandtime.time);*/
+    for (var i in data.next_departures) {
       var now = new Date();
-      var then = new Date(""+now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+jsonData[i].time+":00");
-      if (then - now < 0) {
+      
+      
+      console.log(data.next_departures[i].line.number);
+      console.log(data.next_departures[i].to.name);
+      console.log(data.next_departures[i].dateandtime.time);
+      console.log(now);
+      var then = new Date(""+now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+data.next_departures[i].dateandtime.time);
+      console.log(now);
+      console.log(then);
+      console.log(data.next_departures[i].dateandtime.time+":00");
+     if (then - now < 0) {
         continue;
       }
       var diff = Math.max(0, Math.round((then - now) / 1000 / 60) + 1440) % 1440;
-      var type = "R";
-      if (jsonData[i].linie.match(/^S18/)) {
+/*      var type = "R";
+      if (jsonData.next_departures[i].line.match(/^S18/)) {
         type = "S18";
-      } else if (jsonData[i].linie.match(/^S1/)) {
+      } else if (jsonData.next_departures[i].line.number ==("S1")) {
         type = "S1";
-      } else if (jsonData[i].linie.match(/^S20/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S20/)) {
         type = "S20";
-      } else if (jsonData[i].linie.match(/^S2/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S2/)) {
         type = "S2";
-      } else if (jsonData[i].linie.match(/^S3/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S3/)) {
         type = "S3";
-      } else if (jsonData[i].linie.match(/^S4/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S4/)) {
         type = "S4";
-      } else if (jsonData[i].linie.match(/^S5/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S5/)) {
         type = "S5";
-      } else if (jsonData[i].linie.match(/^S6/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S6/)) {
         type = "S6";
-      } else if (jsonData[i].linie.match(/^S7/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S7/)) {
         type = "S7";
-      } else if (jsonData[i].linie.match(/^S8/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S8/)) {
         type = "S8";
-      } else if (jsonData[i].linie.match(/^S/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^S/)) {
         type = "S";
-      } else if (jsonData[i].linie.match(/^U1/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U1/)) {
         type = "U1";
-      } else if (jsonData[i].linie.match(/^U2/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U2/)) {
         type = "U2";
-      } else if (jsonData[i].linie.match(/^U3/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U3/)) {
         type = "U3";
-      } else if (jsonData[i].linie.match(/^U4/)) {
+      } else if (jsonData.next_departures[i].line.number ==("U4")) {
         type = "U4";
-      } else if (jsonData[i].linie.match(/^U5/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U5/)) {
         type = "U5";
-      } else if (jsonData[i].linie.match(/^U6/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U6/)) {
         type = "U6";
-      } else if (jsonData[i].linie.match(/^U7/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U7/)) {
         type = "U7";
-      } else if (jsonData[i].linie.match(/^U8/)) {
+      } else if (jsonData.next_departures[i].line.number.match(/^U8/)) {
         type = "U8";
-      } else if(jsonData[i].linie.match(/^U/i)) {
+      } else if(jsonData.next_departures[i].line.number.match(/^U/i)) {
         type = "U";
-      } else if(jsonData[i].linie.match(/^N/i)) {
+      } else if(jsonData.next_departures[i].line.number.match(/^N/i)) {
         type = "N";
-      } else if(jsonData[i].linie.match(/^X/i)) {
+      } else if(jsonData.next_departures[i].line.number.match(/^X/i)) {
         type = "X";
-      } else if(parseInt(jsonData[i].linie) >= 40) {
-        type = "B";
-      } else if(parseInt(jsonData[i].linie) > 0) {
-        type = "T";
-      } else if(jsonData[i].finalStop.match(/Bayrischzell|Lenggries|Tegernsee|Schliersee|Bad Tölz/)) {
-        type = "BOB";
-      } else if(jsonData[i].finalStop.match(/Deisenhofen|Holzkirchen|Rosenheim|Salzburg|Kufstein/)) {
-        type = "MER";
+//      } else if(parseInt(jsonData[i].linie) >= 40) {
+//        type = "B";
+//      } else if(parseInt(jsonData[i].linie) > 0) {
+//        type = "T";
+//      } else if(jsonData[i].finalStop.match(/Bayrischzell|Lenggries|Tegernsee|Schliersee|Bad Tölz/)) {
+//        type = "BOB";
+//      } else if(jsonData[i].finalStop.match(/Deisenhofen|Holzkirchen|Rosenheim|Salzburg|Kufstein/)) {
+//        type = "MER";
 //      } else if(jsonData[i].finalStop.match(/Kempten|Hof Hbf|^Prag|^Praha/i)) {
 //        type = "ALX";
-      }
+      }*/
       body.push({
-        title: jsonData[i].linie.match(/^(S\d|U\d|0)/)
-             ? jsonData[i].finalStop
-             : jsonData[i].linie + " " + jsonData[i].finalStop,
-        subtitle: jsonData[i].time + " (in " +diff+ (isDe?" Minuten)":" minutes)"),
+        title: data.next_departures[i].line.number
+             ? data.next_departures[i].to.name
+             : data.next_departures[i].line.number + " " + data.next_departures[i].to.name,
+        subtitle: i + data.next_departures[i].datentime.time + " (in " +diff+ (isDe?" Minuten)":" minutes)"),
         time: then,
-        icon: "IMAGES_"+type+"_PNG"
+        
       });
     }
+    
+    
+    
+    
     departures.section(0, {
       title: e.item.title,
       items: body
@@ -283,7 +304,7 @@ var stationdetails = function(e) {
       if(e.item.stationId == currentStation) {
         stationdetails(e);
       }
-    }, 20000);
+    }, 200000);
   });
 };
 
