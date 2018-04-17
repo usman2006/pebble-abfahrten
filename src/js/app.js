@@ -220,10 +220,10 @@ var stationdetails = function(e) {
       console.log(data.next_departures[i].dateandtime.time);
       console.log(now);
       var then = new Date(""+now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+data.next_departures[i].dateandtime.time);
-      console.log(now);
-      console.log(then);
+      console.log(now.getTime());
+      console.log(then.getTime());
       console.log(data.next_departures[i].dateandtime.time+":00");
-     if (then - now < 0) {
+     if (then.getTime() < now.getTime()) {
         continue;
       }
       var diff = Math.max(0, Math.round((then - now) / 1000 / 60) + 1440) % 1440;
